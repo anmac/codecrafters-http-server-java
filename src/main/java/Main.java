@@ -24,6 +24,19 @@ public class Main {
         clientSocket
             .getOutputStream()
             .write("HTTP/1.1 200 OK\r\n\r\n".getBytes(StandardCharsets.UTF_8));
+      } else if (parts[1].startsWith("/echo/")) {
+        String result = parts[1].replaceFirst("^/echo/", "");
+        clientSocket
+            .getOutputStream()
+            .write(
+                ("HTTP/1.1 200 OK\r\n"
+                        + "Content-Type: text/plain\r\n"
+                        + "Content-Length: "
+                        + result.length()
+                        + "\r\n\r\n"
+                        + result
+                        + "\r\n\r\n")
+                    .getBytes(StandardCharsets.UTF_8));
       } else {
         clientSocket
             .getOutputStream()
