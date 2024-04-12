@@ -18,14 +18,14 @@ public class Main {
 
       InputStreamReader isr = new InputStreamReader(clientSocket.getInputStream());
       BufferedReader br = new BufferedReader(isr);
-      String[] parts = br.readLine().split(" ");
+      String[] path = br.readLine().split(" ");
 
-      if (parts[1].equals("/")) {
+      if (path[1].equals("/")) {
         clientSocket
             .getOutputStream()
             .write("HTTP/1.1 200 OK\r\n\r\n".getBytes(StandardCharsets.UTF_8));
-      } else if (parts[1].startsWith("/echo/")) {
-        String result = parts[1].replaceFirst("^/echo/", "");
+      } else if (path[1].startsWith("/echo/")) {
+        String result = path[1].replaceFirst("^/echo/", "");
         clientSocket
             .getOutputStream()
             .write(
@@ -37,6 +37,24 @@ public class Main {
                         + result
                         + "\r\n\r\n")
                     .getBytes(StandardCharsets.UTF_8));
+      } else if (path[1].startsWith("/user-agent")) {
+        String line;
+        while (!(line = br.readLine()).isEmpty()) {
+          if (line.toLowerCase().contains("user-agent")) {
+            String content = line.replaceFirst("User-Agent: ", "");
+            clientSocket
+                .getOutputStream()
+                .write(
+                    ("HTTP/1.1 200 OK\r\n"
+                            + "Content-Type: text/plain\r\n"
+                            + "Content-Length: "
+                            + content.length()
+                            + "\r\n\r\n"
+                            + content
+                            + "\r\n\r\n")
+                        .getBytes(StandardCharsets.UTF_8));
+          }
+        }
       } else {
         clientSocket
             .getOutputStream()
