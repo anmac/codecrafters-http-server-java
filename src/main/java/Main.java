@@ -1,75 +1,42 @@
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Main {
+
+  private static final boolean running = true;
+
   public static void main(String[] args) {
-    try {
-      ServerSocket serverSocket = new ServerSocket(4221);
+    Map<String, String> arguments = commandLineArguments(args);
+
+    try (ServerSocket serverSocket = new ServerSocket(4221)) {
       serverSocket.setReuseAddress(true);
 
-      while (true) {
-        final Socket clientSocket = serverSocket.accept(); // Wait for connection from client.
-        Thread thread =
-            new Thread(
-                () -> {
-                  try {
-                    InputStreamReader isr = new InputStreamReader(clientSocket.getInputStream());
-                    BufferedReader br = new BufferedReader(isr);
-                    String[] path = br.readLine().split(" ");
+      while (running) {
+        Socket clientSocket = serverSocket.accept(); // Wait for connection from client.
+        System.out.println("accepted new connection");
 
-                    if (path[1].equals("/")) {
-                      clientSocket
-                          .getOutputStream()
-                          .write("HTTP/1.1 200 OK\r\n\r\n".getBytes(StandardCharsets.UTF_8));
-                    } else if (path[1].startsWith("/echo/")) {
-                      String result = path[1].replaceFirst("^/echo/", "");
-                      clientSocket
-                          .getOutputStream()
-                          .write(
-                              ("HTTP/1.1 200 OK\r\n"
-                                      + "Content-Type: text/plain\r\n"
-                                      + "Content-Length: "
-                                      + result.length()
-                                      + "\r\n\r\n"
-                                      + result
-                                      + "\r\n\r\n")
-                                  .getBytes(StandardCharsets.UTF_8));
-                    } else if (path[1].startsWith("/user-agent")) {
-                      String line;
-                      while (!(line = br.readLine()).isEmpty()) {
-                        if (line.toLowerCase().contains("user-agent")) {
-                          String content = line.replaceFirst("User-Agent: ", "");
-                          clientSocket
-                              .getOutputStream()
-                              .write(
-                                  ("HTTP/1.1 200 OK\r\n"
-                                          + "Content-Type: text/plain\r\n"
-                                          + "Content-Length: "
-                                          + content.length()
-                                          + "\r\n\r\n"
-                                          + content
-                                          + "\r\n\r\n")
-                                      .getBytes(StandardCharsets.UTF_8));
-                        }
-                      }
-                    } else {
-                      clientSocket
-                          .getOutputStream()
-                          .write("HTTP/1.1 404 Not Found\r\n\r\n".getBytes(StandardCharsets.UTF_8));
-                    }
-                    System.out.println("accepted new connection");
-                  } catch (IOException e) {
-                    System.out.println("IOException: " + e.getMessage());
-                  }
-                });
+        ClientHandler clientHandler = new ClientHandler(clientSocket, arguments);
+        Thread thread = new Thread(clientHandler);
         thread.start();
       }
     } catch (IOException e) {
-      System.out.println("IOException: " + e.getMessage());
+      System.out.println("(Main) IOException: " + e.getMessage());
     }
+  }
+
+  private static Map<String, String> commandLineArguments(String[] args) {
+    Map<String, String> arguments = new HashMap<>();
+    for (int i = 0; i < args.length; i++) {
+      if (args[i].startsWith("--") && i + 1 < args.length) {
+        String key = args[i].substring(args[i].lastIndexOf('-') + 1);
+        String value = args[i + 1];
+        arguments.put(key, value);
+        i++;
+      }
+    }
+    return arguments;
   }
 }
