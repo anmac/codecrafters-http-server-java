@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import objects.HttpRequest;
 
 public class HttpRequestBuilder {
@@ -13,6 +14,7 @@ public class HttpRequestBuilder {
   private String path;
   private String version;
   private Map<String, String> headers;
+  private String body;
 
   public HttpRequestBuilder() {
     this.headers = new HashMap<>();
@@ -38,16 +40,20 @@ public class HttpRequestBuilder {
     return this;
   }
 
-  public
-  HttpRequest build() {
+  public HttpRequestBuilder body(String content) {
+    this.body = content;
+    return this;
+  }
+
+  public HttpRequest build() {
     HttpRequest httpRequest = new HttpRequest(method, path);
     httpRequest.setVersion(version);
     httpRequest.setHeaders(headers);
+    if (Objects.nonNull(body)) httpRequest.setBody(body);
     return httpRequest;
   }
 
-  public static
-  HttpRequest parseFromInputStream(InputStream inputStream) {
+  public static HttpRequest parseFromInputStream(InputStream inputStream) {
     HttpRequestBuilder builder = new HttpRequestBuilder();
     BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
 
@@ -71,6 +77,16 @@ public class HttpRequestBuilder {
           String value = headerLine.substring(colonIndex + 1).trim();
           builder.header(key, value);
         }
+      }
+
+      int contentLength = Integer.parseInt(builder.headers.getOrDefault("Content-Length", "0"));
+      if (contentLength > 0) {
+        StringBuilder bodyBuilder = new StringBuilder();
+        int c;
+        for (int i = 0; i < contentLength && (c = reader.read()) != -1; i++) {
+          bodyBuilder.append((char) c);
+        }
+        builder.body(bodyBuilder.toString());
       }
     } catch (Exception e) {
       System.out.println("(builder.HttpRequestBuilder) Exception: " + e.getMessage());
