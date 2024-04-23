@@ -1,3 +1,7 @@
+package service.handler;
+
+import builder.HttpRequestBuilder;
+import builder.HttpResponseBuilder;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.Socket;
@@ -6,6 +10,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
+import objects.HttpRequest;
+import objects.HttpResponse;
 
 public class ClientHandler implements Runnable {
 
@@ -95,7 +101,7 @@ public class ClientHandler implements Runnable {
       os.close();
       clientSocket.close();
     } catch (IOException e) {
-      System.out.println("(ClientHandler) IOException: " + e.getMessage());
+      System.out.println("(service.handler.ClientHandler) IOException: " + e.getMessage());
     }
   }
 

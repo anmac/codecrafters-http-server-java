@@ -1,8 +1,11 @@
+package builder;
+
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
+import objects.HttpRequest;
 
 public class HttpRequestBuilder {
 
@@ -35,14 +38,16 @@ public class HttpRequestBuilder {
     return this;
   }
 
-  public HttpRequest build() {
+  public
+  HttpRequest build() {
     HttpRequest httpRequest = new HttpRequest(method, path);
     httpRequest.setVersion(version);
     httpRequest.setHeaders(headers);
     return httpRequest;
   }
 
-  public static HttpRequest parseFromInputStream(InputStream inputStream) {
+  public static
+  HttpRequest parseFromInputStream(InputStream inputStream) {
     HttpRequestBuilder builder = new HttpRequestBuilder();
     BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
 
@@ -68,7 +73,7 @@ public class HttpRequestBuilder {
         }
       }
     } catch (Exception e) {
-      System.out.println("(HttpRequestBuilder) Exception: " + e.getMessage());
+      System.out.println("(builder.HttpRequestBuilder) Exception: " + e.getMessage());
       throw new RuntimeException(e.getMessage());
     }
 

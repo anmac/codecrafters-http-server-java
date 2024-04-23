@@ -1,5 +1,8 @@
+package builder;
+
 import java.util.HashMap;
 import java.util.Map;
+import objects.HttpResponse;
 
 public class HttpResponseBuilder {
 
@@ -44,7 +47,8 @@ public class HttpResponseBuilder {
     return this;
   }
 
-  public HttpResponse build() {
+  public
+  HttpResponse build() {
     HttpResponse httpResponse = new HttpResponse(statusCode);
     httpResponse.setStatus(status);
     httpResponse.setBody(body);
